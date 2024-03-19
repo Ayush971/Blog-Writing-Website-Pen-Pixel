@@ -1,9 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-//import { initializeApp } from 'firebase/app';
-//import firebase from '/firebase/app';
-
 const blogTitleField = document.querySelector('.title');
 const articleFeild = document.querySelector('.article');
  
@@ -14,19 +8,6 @@ let bannerPath;
 
 const publishBtn = document.querySelector('.publish-btn');
 const uploadInput = document.querySelector('#image-upload');
-
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCLJyxjIOMwdKx_hyP7hbgHY_JM1Ax4AUc",
-  authDomain: "blogging-website-2f8cd.firebaseapp.com",
-  projectId: "blogging-website-2f8cd",
-  storageBucket: "blogging-website-2f8cd.appspot.com",
-  messagingSenderId: "694016938916",
-  appId: "1:694016938916:web:c930e78da03dfe3efb6731"
-};
-
-// Initialize Firebase
-const app=initializeApp(firebaseConfig);
 
 bannerImage.addEventListener('change', () => {
     uploadImage(bannerImage, "banner");
@@ -65,9 +46,7 @@ const addImage = (imagepath, alt) => {
     articleFeild.value = articleFeild.value.slice(0, curPos) + textToInsert + articleFeild.value.slice(curPos);
 }
 
-let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-publishBtn.addEventListener('click', () => {
+publishBtn.addEventListener('click', async() => {
     if(articleFeild.value.length && blogTitleField.value.length){
         // generating id
         let letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -79,23 +58,33 @@ publishBtn.addEventListener('click', () => {
 
         // setting up docName
         let docName = `${blogTitle}-${id}`;
-        let date = new Date(); // for published at info
 
-        //const db = firebase.firestore(app);
-        const db = getFirestore(app);
-        //access firstore with db variable;
-        const myCollection = collection(db, 'blogs');
-        db.collection("blogs",).doc(docName).set({
-            title: blogTitleField.value,
-            article: articleFeild.value,
-            bannerImage: bannerPath,
-            publishedAt: `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
-        })
-        .then(() => {
-            location.href = `/${docName}`;
-        })
-        .catch((err) => {
+        try {
+            const response = await fetch('/api/blogs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                _id: docName,
+                title: blogTitleField.value,
+                article: articleFeild.value,
+                bannerImage: bannerPath
+              }),
+            });
+        
+            if (!response.ok) {
+              throw new Error('Error creating blog');
+            }
+        
+            const data = await response.json();
+            if (data.success) {
+              location.href = `/${docName}`; // Redirect to the blog page
+            } else {
+              // Handle error message from the server
+              console.error(data.message);
+              // Display error message to the user
+            }
+        } catch (err) {
             console.error(err);
-        })
-    }
-})
+        }
+    }   
+});

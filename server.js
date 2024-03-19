@@ -1,11 +1,43 @@
 const express = require('express');
 const path = require('path');
 const fileupload = require('express-fileupload');
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb+srv://ayushshah2021:q0hKD0ZiyiYIzqii@cluster0.ap0carm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+    .then((result) => console.log('connected to db'))
+    .catch((err) => console.log(err));
+
+const blogSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        required: true
+    },
+    title: {
+        type: String,
+        required: true,
+        trim: true // Remove leading/trailing whitespace
+    },
+    article: {
+        type: String,
+        required: true
+    },
+    bannerImage: {
+        type: String, // Optional: URL path to the banner image
+    },
+    createdAt: { // Timestamp for creation time
+        type: Date,
+        default: Date.now
+    }
+});
+      
+// Create the Blog model using the schema
+const Blog = mongoose.model('Blog', blogSchema);
 
 let initial_path = path.join(__dirname, "public");
 
 const app = express();
 app.use(express.static(initial_path));
+app.use(express.json());
 app.use(fileupload());
 
 app.get('/', (req, res) => {
@@ -15,6 +47,21 @@ app.get('/', (req, res) => {
 app.get('/editor', (req, res) => {
     res.sendFile(path.join(initial_path, "./uploads/editor.html"));
 })
+
+app.post('/api/blogs', async (req, res) => {
+
+    try {
+        if (!req.body.title || !req.body.article) {
+            return res.status(400).json({ success: false, message: 'Title and article are required' });
+        }
+      const newBlog = new Blog(req.body);
+      await newBlog.save();
+      res.json({ success: true, message: 'Blog created successfully' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Error creating blog' });
+    }
+});
 
 // upload link
 app.post('/upload', (req, res) => {
@@ -34,6 +81,40 @@ app.post('/upload', (req, res) => {
             res.json(`uploads/${imagename}`)
         }
     })
+})
+
+app.get("/:blog", (req, res) => {
+    res.sendFile(path.join(initial_path, "./uploads/blog.html"));
+})
+
+app.get('/api/blogs/:blogId', async (req, res) => {
+    try {
+        const blog = await Blog.findById(req.params.blogId);
+        if (blog) {
+            res.json(blog);
+        } else {
+            res.status(404).json({ error: 'Blog not found' });
+        }
+    } catch (error) {
+        console.error('Error retrieving blog:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// In server.js or a separate file
+app.get('/api/blogs', async (req, res) => {
+    try {
+        const blogs = await Blog.find(); // Assuming Blog is your Mongoose model
+        res.json(blogs);
+    } catch (error) {
+        console.error('Error retrieving blogs:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+app.use((req, res) => {
+    res.json("404");
 })
 
 app.listen("3000", () => {
