@@ -3,7 +3,7 @@ const path = require('path');
 const fileupload = require('express-fileupload');
 const mongoose = require('mongoose');
 
-mongoose.connect("mongodb+srv://ayushshah2021:q0hKD0ZiyiYIzqii@cluster0.ap0carm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+mongoose.connect("mongodb+srv://ayushshah2021:q0hKD0ZiyiYIzqii@cluster0.ap0carm.mongodb.net/Blog-Writing?retryWrites=true&w=majority&appName=Cluster0")
     .then((result) => console.log('connected to db'))
     .catch((err) => console.log(err));
 
@@ -29,9 +29,26 @@ const blogSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+const loginSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        trim: true // Remove leading/trailing whitespace
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    createdAt: { // Timestamp for creation time
+        type: Date,
+        default: Date.now
+    }
+});
       
 // Create the Blog model using the schema
 const Blog = mongoose.model('Blog', blogSchema);
+const credentials = mongoose.model('login', loginSchema);
 
 let initial_path = path.join(__dirname, "public");
 
@@ -48,6 +65,10 @@ app.get('/editor', (req, res) => {
     res.sendFile(path.join(initial_path, "./uploads/editor.html"));
 })
 
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(initial_path, "./uploads/login.html"));
+})
+
 app.post('/api/blogs', async (req, res) => {
 
     try {
@@ -60,6 +81,21 @@ app.post('/api/blogs', async (req, res) => {
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Error creating blog' });
+    }
+});
+
+app.post('/api/login', async (req, res) => {
+
+    try {
+        if (!req.body.title || !req.body.article) {
+            return res.status(400).json({ success: false, message: 'Title and article are required' });
+        }
+      const newLogin = new credentials(req.body);
+      await newLogin.save();
+      res.json({ success: true, message: 'Login created successfully' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Error creating Login' });
     }
 });
 
@@ -101,10 +137,9 @@ app.get('/api/blogs/:blogId', async (req, res) => {
     }
 });
 
-// In server.js or a separate file
 app.get('/api/blogs', async (req, res) => {
     try {
-        const blogs = await Blog.find(); // Assuming Blog is your Mongoose model
+        const blogs = await Blog.find(); 
         res.json(blogs);
     } catch (error) {
         console.error('Error retrieving blogs:', error);
