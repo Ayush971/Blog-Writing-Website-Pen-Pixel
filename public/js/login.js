@@ -1,5 +1,3 @@
-const blogUsername=document.querySelector('.username');
-const blogPassword=document.querySelector('.password');
 
 + function($) {
     $('.palceholder').click(function() {
@@ -47,21 +45,27 @@ const blogPassword=document.querySelector('.password');
     });
   };
 
-//Not working : data not getting posted
+document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Prevent default form submission
 
-try {
-  const response = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: blogUsername.value,
-      article: blogPassword.value,
-    }),
-  });
+    const UserName = document.querySelector('.username').value;
+    const password = document.querySelector('.password').value;
 
-  if (!response.ok) {
-    throw new Error('Error creating blog');
-  }
-} catch (err) {
-    console.error(err);
-}
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ UserName, password })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            window.location.href = '/'; // Redirect to home page on successful login
+        } else {
+            alert(data.message); // Display error message if login failed
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.'); // Display error message if an error occurred
+    }
+});

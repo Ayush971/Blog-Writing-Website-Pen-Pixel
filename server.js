@@ -31,12 +31,16 @@ const blogSchema = new mongoose.Schema({
 });
 
 const loginSchema = new mongoose.Schema({
-    username: {
+    UserName: {
         type: String,
         required: true,
         trim: true // Remove leading/trailing whitespace
     },
     password: {
+        type: String,
+        required: true
+    },
+    email: {
         type: String,
         required: true
     },
@@ -69,6 +73,10 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(initial_path, "./uploads/login.html"));
 })
 
+app.get('/CreateAccount', (req, res) => {
+    res.sendFile(path.join(initial_path, "./uploads/createAccount.html"));
+})
+
 app.post('/api/blogs', async (req, res) => {
 
     try {
@@ -84,18 +92,46 @@ app.post('/api/blogs', async (req, res) => {
     }
 });
 
+app.post('/signup', async (req, res) => {
+    try {
+        const { UserName, email, password } = req.body; // Extract user data from request body
+        const existingUser = await credentials.findOne({ email }); // Check if user already exists
+
+        if (existingUser) {
+            return res.send('User already exists'); // Return response if user already exists
+        }
+
+        // Create a new user document
+        const newUser = new credentials({
+            UserName,
+            email,
+            password
+        });
+
+        // Save the new user to the database
+        await newUser.save();
+        console.log('User saved successfully!');
+        res.redirect('/login'); // Redirect to home page after signup
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Signup failed due to an error');
+    }
+});
+
 app.post('/api/login', async (req, res) => {
+    const { UserName, password } = req.body;
 
     try {
-        if (!req.body.title || !req.body.article) {
-            return res.status(400).json({ success: false, message: 'Title and article are required' });
+        const user = await credentials.findOne({ UserName });
+
+        if (!user || user.password !== password) {
+            return res.status(401).json({ success: false, message: 'Invalid username or password' });
         }
-      const newLogin = new credentials(req.body);
-      await newLogin.save();
-      res.json({ success: true, message: 'Login created successfully' });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: 'Error creating Login' });
+
+        res.status(200).json({ success: true, message: 'Login successful' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
 

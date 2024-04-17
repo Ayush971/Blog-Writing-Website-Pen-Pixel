@@ -2,11 +2,28 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>Login Page in HTML with CSS Code Example</title>
+  <title>Login Page</title>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
 
 	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous"><link rel="stylesheet" href="../css/login.css">
+	<style>
+	#submit{
+      color: #fff;
+      font-size: 16px;
+      padding: 12px 35px;
+      border-radius: 50px;
+      display: inline-block;
+      border: 0;
+      outline: 0;
+      box-shadow: 0px 4px 20px 0px #49c628a6;
+      background-image: linear-gradient(135deg, #70F570 10%, #49C628 100%);
+    }
+    #submit:hover{
+      color: #e4dad3;
+      cursor: pointer;
+    }
+	</style>
 
 </head>
 <body>
@@ -23,30 +40,31 @@
 		</div>
 	</div>
 	
-	
-		<div class="right">
+	<form action="/" method="post" id="loginForm">
+	<div class="right">
 		<h5>Login</h5>
-		<p>Don't have an account? <a href="../uploads/createAccount.html">Create Your Account</a> it takes less than a minute</p>
+		<p>Don't have an account? <a href="/CreateAccount">Create Your Account</a> it takes less than a minute</p>
 		<div class="inputs">
 			<input type="text" placeholder="user name" class="username">
 			<br>
 			<input type="password" placeholder="password" class="password">
 		</div>
 			
-			<br><br>
+		<br><br>
 			
 		<div class="remember-me--forget-password">
-				<!-- Angular -->
-	<label>
-		<input type="checkbox" name="item" checked/>
-		<span class="text-checkbox">Remember me</span>
-	</label>
+			<!-- Angular -->
+			<label>
+				<input type="checkbox" name="item" checked/>
+				<span class="text-checkbox">Remember me</span>
+			</label>
 			<p>forget password?</p>
 		</div>
 			
-			<br>
-			<button class="login"><a href="../uploads/home.html" class="login-link">Login</a></button>
+		<br>
+		<input type="submit" name="submit" id="submit">
 	</div>
+	</form>
 	
 </div>
 <!-- partial -->
